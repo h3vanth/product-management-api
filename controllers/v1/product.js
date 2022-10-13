@@ -1,4 +1,5 @@
 const Product = require('../../models/v1/product');
+const { validationResult } = require('express-validator');
 
 exports.getProducts = (req, res, next) => {
   Product.find()
@@ -33,6 +34,14 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.addProduct = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errorCode: '400',
+      message: 'Bad request',
+      errors: errors.array().map(({ param, msg }) => ({ param, msg })),
+    });
+  }
   const product = new Product(req.body);
   product
     .save()
@@ -55,6 +64,14 @@ exports.addProduct = (req, res, next) => {
 };
 
 exports.updateProduct = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errorCode: '400',
+      message: 'Bad request',
+      errors: errors.array().map(({ param, msg }) => ({ param, msg })),
+    });
+  }
   const { name, price, quantityAvailable } = req.body;
 
   Product.findById(req.params.id)

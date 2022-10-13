@@ -8,13 +8,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
-const productsRoutes = require('./routes/v1/products');
+const productRoutes = require('./routes/v1/product');
 
 const app = express();
 
 app.use(bodyParser.json());
 
-app.use('/api/v1/products', productsRoutes);
+app.use('/api/v1/products', productRoutes);
 
 app.use((req, res, next) => {
   res.status(404).json({ errorCode: '404', message: 'Not a valid route' });
