@@ -11,9 +11,7 @@ exports.getProductsForUser = (req, res, next) => {
       res.status(200).json({ products: products.products });
     })
     .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+      next(err);
     });
 };
 
@@ -30,9 +28,7 @@ exports.getProductForUser = (req, res, next) => {
       }
     })
     .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+      next(err);
     });
 };
 
@@ -50,7 +46,7 @@ exports.deleteProductForUser = async (req, res, next) => {
       res.status(200).end();
     }
   } catch (err) {
-    res.status(500).json({ errorCode: '500', message: 'Something went wrong' });
+    next(err);
   }
 };
 
@@ -79,7 +75,7 @@ exports.updateProductForUser = async (req, res, next) => {
       res.status(200).end();
     }
   } catch (err) {
-    res.status(500).json({ errorCode: '500', message: 'Something went wrong' });
+    next(err);
   }
 };
 
@@ -110,6 +106,6 @@ exports.createProductForUser = async (req, res, next) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ errorCode: '500', message: 'Something went wrong' });
+    next(err);
   }
 };

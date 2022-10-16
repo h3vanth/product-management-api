@@ -25,6 +25,10 @@ app.use((req, res, next) => {
   res.status(404).json({ errorCode: '404', message: 'Not a valid route' });
 });
 
+app.use((err, req, res, next) => {
+  res.status(500).json({ errorCode: '500', message: 'Something went wrong' });
+});
+
 mongoose
   .connect(process.env.DB_URI)
   .then(() => {

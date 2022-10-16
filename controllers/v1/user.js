@@ -8,9 +8,7 @@ exports.getUsers = (req, res, next) => {
       res.status(200).json({ users });
     })
     .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+      next(err);
     });
 };
 
@@ -26,9 +24,7 @@ exports.getUser = (req, res, next) => {
       }
     })
     .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+      next(err);
     });
 };
 
@@ -53,9 +49,7 @@ exports.addUser = (req, res, next) => {
       });
     })
     .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+      next(err);
     });
 };
 
@@ -85,9 +79,7 @@ exports.updateUser = (req, res, next) => {
       res.status(200).end();
     })
     .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+      next(err);
     });
 };
 
@@ -101,8 +93,6 @@ exports.deleteUser = (req, res, next) => {
       }
     })
     .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+      next(err);
     });
 };
