@@ -15,7 +15,7 @@ exports.getUsers = (req, res, next) => {
 };
 
 exports.getUser = (req, res, next) => {
-  User.findById(req.params.id)
+  User.findById(req.params.userId)
     .select('email products')
     .populate('products', '-__v -user')
     .then((user) => {
@@ -70,7 +70,7 @@ exports.updateUser = (req, res, next) => {
   }
   const { email, password } = req.body;
 
-  User.findById(req.params.id)
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
         return res
@@ -92,7 +92,7 @@ exports.updateUser = (req, res, next) => {
 };
 
 exports.deleteUser = (req, res, next) => {
-  User.deleteOne({ _id: req.params.id })
+  User.deleteOne({ _id: req.params.userId })
     .then((result) => {
       if (result.deletedCount > 0) {
         res.status(200).end();
