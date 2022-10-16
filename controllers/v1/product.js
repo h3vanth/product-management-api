@@ -1,11 +1,14 @@
+const User = require('../../models/v1/user');
 const Product = require('../../models/v1/product');
+
 const { validationResult } = require('express-validator');
 
-exports.getProducts = (req, res, next) => {
-  Product.find()
-    .select('name price quantityAvailable')
+exports.getProductsForUser = (req, res, next) => {
+  User.findById(req.userId)
+    .select('products')
+    .populate('products', '-__v -user')
     .then((products) => {
-      res.status(200).json({ products });
+      res.status(200).json({ products: products.products });
     })
     .catch((err) => {
       res
@@ -14,9 +17,9 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
-exports.getProduct = (req, res, next) => {
-  Product.findById(req.params.id)
-    .select('name price quantityAvailable')
+exports.getProductForUser = (req, res, next) => {
+  Product.findOne({ _id: req.params.productId, user: req.userId })
+    .select('-__v -user')
     .then((product) => {
       if (!product) {
         res
@@ -33,37 +36,25 @@ exports.getProduct = (req, res, next) => {
     });
 };
 
-exports.addProduct = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      errorCode: '400',
-      message: 'Bad request',
-      errors: errors.array().map(({ param, msg }) => ({ param, msg })),
+exports.deleteProductForUser = async (req, res, next) => {
+  try {
+    const product = await Product.findOne({
+      _id: req.params.productId,
+      user: req.userId,
     });
+
+    if (!product) {
+      res.status(404).json({ errorCode: '404', message: 'Product not found' });
+    } else {
+      await product.remove();
+      res.status(200).end();
+    }
+  } catch (err) {
+    res.status(500).json({ errorCode: '500', message: 'Something went wrong' });
   }
-  const product = new Product(req.body);
-  product
-    .save()
-    .then((product) => {
-      res.status(201).json({
-        product: {
-          _id: product._id,
-          name: product.name,
-          price: product.price,
-          quantityAvailable: product.quantityAvailable,
-        },
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
-    });
 };
 
-exports.updateProduct = (req, res, next) => {
+exports.updateProductForUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -73,44 +64,52 @@ exports.updateProduct = (req, res, next) => {
     });
   }
   const { name, price, quantityAvailable } = req.body;
-
-  Product.findById(req.params.id)
-    .select('name price quantityAvailable')
-    .then((product) => {
-      if (!product) {
-        return res
-          .status(404)
-          .json({ errorCode: '404', message: 'Product not found' });
-      }
+  try {
+    const product = await Product.findOne({
+      _id: req.params.productId,
+      user: req.userId,
+    });
+    if (!product) {
+      res.status(404).json({ errorCode: '404', message: 'Product not found' });
+    } else {
       product.name = name;
       product.price = price;
       product.quantityAvailable = quantityAvailable;
-      return product.save();
-    })
-    .then((product) => {
-      res.status(200).json({ product });
-    })
-    .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
-    });
+      await product.save();
+      res.status(200).end();
+    }
+  } catch (err) {
+    res.status(500).json({ errorCode: '500', message: 'Something went wrong' });
+  }
 };
 
-exports.deleteProduct = (req, res, next) => {
-  Product.deleteOne({ _id: req.params.id })
-    .then((result) => {
-      if (result.deletedCount > 0) {
-        res.status(200).end();
-      } else {
-        res
-          .status(404)
-          .json({ errorCode: '404', message: 'Product not found' });
-      }
-    })
-    .catch((err) => {
-      res
-        .status(500)
-        .json({ errorCode: '500', message: 'Something went wrong' });
+exports.createProductForUser = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errorCode: '400',
+      message: 'Bad request',
+      errors: errors.array().map(({ param, msg }) => ({ param, msg })),
     });
+  }
+
+  try {
+    const product = await new Product({
+      ...req.body,
+      user: req.userId,
+    }).save();
+    const user = await User.findById(req.userId);
+    user.products.push(product);
+    await user.save();
+    res.status(201).json({
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        quantityAvailable: product.quantityAvailable,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ errorCode: '500', message: 'Something went wrong' });
+  }
 };

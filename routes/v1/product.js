@@ -3,10 +3,14 @@ const router = require('express').Router();
 const productController = require('../../controllers/v1/product');
 const productValidator = require('../../validators/v1/product');
 
-router.get('/', productController.getProducts);
-router.get('/:id', productController.getProduct);
-router.post('/', productValidator, productController.addProduct);
-router.put('/:id', productValidator, productController.updateProduct);
-router.delete('/:id', productController.deleteProduct);
+router.get('/', productController.getProductsForUser);
+router.get('/:productId', productController.getProductForUser);
+router.delete('/:productId', productController.deleteProductForUser);
+router.put(
+  '/:productId',
+  productValidator,
+  productController.updateProductForUser
+);
+router.post('/', productValidator, productController.createProductForUser);
 
 module.exports = router;

@@ -10,4 +10,10 @@ module.exports = [
       return Number(value) === 0 ? false : true;
     }),
   body('quantityAvailable', 'Invalid available quantity').isInt(),
+  // body('_id', 'User ID is required').custom((_id, { req }) => {
+  //   if (req.method === 'PUT' && !_id) {
+  //     return false;
+  //   }
+  //   return true;
+  // }),
 ];
