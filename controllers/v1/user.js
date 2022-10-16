@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+
 const User = require('../../models/v1/user');
 const { validationResult } = require('express-validator');
 
@@ -22,31 +24,6 @@ exports.getUser = (req, res, next) => {
       } else {
         res.status(200).json({ user });
       }
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
-
-exports.addUser = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      errorCode: '400',
-      message: 'Bad request',
-      errors: errors.array().map(({ param, msg }) => ({ param, msg })),
-    });
-  }
-  const user = new User(req.body);
-  user
-    .save()
-    .then((user) => {
-      res.status(201).json({
-        user: {
-          _id: user._id,
-          email: user.email,
-        },
-      });
     })
     .catch((err) => {
       next(err);
@@ -95,4 +72,52 @@ exports.deleteUser = (req, res, next) => {
     .catch((err) => {
       next(err);
     });
+};
+
+exports.getProfile = (req, res, next) => {
+  User.findById(req.userId)
+    .select('email')
+    .then((user) => {
+      res.status(200).json({ user });
+    })
+    .catch((err) => {
+      console.log(err);
+      next(err);
+    });
+};
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { email, password, update } = req.body;
+
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        errorCode: 404,
+        message: 'User not found',
+      });
+    }
+    if (!(await bcrypt.compare(password, hashedPassword))) {
+      return res.status(400).json({
+        errorCode: 400,
+        message: 'Bad request: Please enter correct password',
+      });
+    }
+    if (update === 'EMAIL') {
+      user.email = email;
+    } else if (update === 'PASSWORD') {
+      const hashedPassword = await bcrypt.hash(password, 12);
+      user.password = hashedPassword;
+    }
+    await user.save();
+    res.status(200).json({
+      user: {
+        _id: user._id,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
 };
